@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaetram Smithing Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        .card-container {
+            background-color: #1f2937; /* bg-gray-800 */
+            border: 1px solid #374151; /* border-gray-700 */
+            position: relative;
+            overflow: hidden;
+        }
+        .card-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 1rem; /* rounded-2xl */
+            padding: 2px;
+            background: linear-gradient(145deg, #374151, #1f2937, #374151);
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .metal-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border-top-width: 4px;
+        }
+        .metal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+        }
+        #results {
+            transition: opacity 0.5s ease-in-out;
+        }
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+    </style>
+</head>
+<body class="text-slate-200 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl card-container rounded-2xl shadow-2xl p-6 md:p-8">
+        
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="font-cinzel text-4xl md:text-5xl font-bold text-amber-400 tracking-wider">Smithing Calculator</h1>
+            <p class="text-slate-400 mt-2 text-lg">for Kaetram</p>
+        </div>
+
+        <!-- Input Form -->
+        <div id="input-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 items-end">
+            <!-- Current Progress Input -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <label for="inputType" class="block text-sm font-medium text-slate-300 mb-2">Current Progress</label>
+                <select id="inputType" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                    <option value="level" selected>Current Level</option>
+                    <option value="exp">Current EXP</option>
+                </select>
+                <input type="number" id="currentValue" min="1" placeholder="Enter value" class="mt-2 w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+            </div>
+
+            <!-- Target Level Input -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <label for="targetLevel" class="block text-sm font-medium text-slate-300 mb-2">Target Level</label>
+                <input type="number" id="targetLevel" min="2" max="120" placeholder="Enter target level" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+            </div>
+            
+            <!-- General Item Picker -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <label for="itemPicker" class="block text-sm font-medium text-slate-300 mb-2">Item (General)</label>
+                <select id="itemPicker" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                    <option value="handle" selected>Handle</option>
+                    <option value="arrowhead">Arrowhead</option>
+                </select>
+            </div>
+
+            <!-- Gold Item Picker -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <label for="goldItemPicker" class="block text-sm font-medium text-slate-300 mb-2">Item (Gold)</label>
+                <select id="goldItemPicker" class="w-full bg-gray-800 border border-gray-600 rounded-md p-2 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                    <option value="unsocketed" selected>Unsocketed Jewelry</option>
+                    <option value="socketed">Socketed Jewelry</option>
+                </select>
+            </div>
+        </div>
+        
+        <!-- Message/Error Display -->
+        <div id="message" class="text-center text-red-400 mb-6 h-5 transition-opacity duration-300"></div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden opacity-0">
+            <div class="text-center mb-6 border-t border-b border-gray-700 py-4">
+                 <p id="exp-info" class="text-center text-slate-300"></p>
+            </div>
+            <h2 class="font-cinzel text-2xl font-bold text-center mb-6 text-amber-400">Bars Required to Reach Target</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <!-- Metal cards will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA ---
+        // Correct, full experience table (cumulative) for levels 1-120
+        const experienceTable = [
+            0, 0, 83, 174, 275, 387, 511, 648, 799, 966, 1151, 1355, 1580, 1829, 2103, 2406, 2740, 3109, 3517, 3967, 4463, 5011, 5616, 6283, 7020, 7833, 8730, 9720, 10813, 12020, 13352, 14822, 16444, 18235, 20212, 22394, 24802, 27460, 30394, 33633, 37209, 41156, 45513, 50323, 55633, 61495, 67966, 75110, 82996, 91702, 101314, 111925, 123640, 136573, 150851, 166614, 184017, 203231, 224443, 247862, 273718, 302264, 333780, 368575, 406990, 449403, 496229, 547928, 605006, 668024, 737600, 814417, 899228, 992866, 1096249, 1210391, 1336413, 1475551, 1629170, 1798777, 1986037, 2192787, 2421055, 2673082, 2951341, 3258562, 3597759, 3972261, 4385743, 4842262, 5346298, 5902797, 6517219, 7195594, 7944579, 8771523, 9684541, 10692593, 11805570, 13034394, 14391123, 15889071, 17542938, 19368953, 21385034, 23610966, 26068592, 28782028, 31777902, 35085613, 38737619, 42769758, 47221598, 52136826, 57563675, 63555399, 70170796, 77474784, 85539037, 94442692, 104273121
+        ];
+
+        // Correct Smithing data for smelting bars with item bonuses
+        const smithingData = [
+            { name: 'Copper',     exp: 24,  level: 1,  color: 'border-orange-500',   handleExp: 18, arrowheadExp: 8 },
+            { name: 'Bronze',     exp: 48,  level: 10, color: 'border-yellow-950',   handleExp: 32, arrowheadExp: 18 },
+            { name: 'Iron',       exp: 74,  level: 20, color: 'border-slate-400',    handleExp: 51, arrowheadExp: 25 },
+            { name: 'Nisoc',      exp: 100, level: 30, color: 'border-stone-800',    handleExp: 53, arrowheadExp: 33 },
+            { name: 'Silver',     exp: 126, level: 40, color: 'border-gray-300',     handleExp: 72, arrowheadExp: 42 },
+            { name: 'Cinnabar',   exp: 153, level: 50, color: 'border-red-500',      handleExp: 91, arrowheadExp: 51 },
+            { name: 'Pythar',     exp: 192, level: 65, color: 'border-purple-400',   handleExp: 114, arrowheadExp: 64 },
+            { name: 'Gold',       exp: 218, level: 75, color: 'border-yellow-400',   unsocketedExp: 72, socketedExp: 145 },
+            { name: 'Ibo',        exp: 300, level: 85, color: 'border-blue-400',     handleExp: 155, arrowheadExp: 100 },
+            { name: 'Meteorite',  exp: 375, level: 95, color: 'border-amber-800' }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const inputForm = document.getElementById('input-form');
+        const inputTypeSelect = document.getElementById('inputType');
+        const currentValueInput = document.getElementById('currentValue');
+        const targetLevelInput = document.getElementById('targetLevel');
+        const itemPicker = document.getElementById('itemPicker');
+        const goldItemPicker = document.getElementById('goldItemPicker');
+        const messageDiv = document.getElementById('message');
+        const resultsDiv = document.getElementById('results');
+        const expInfoP = document.getElementById('exp-info');
+
+        // --- FUNCTIONS ---
+
+        function getTotalExpForLevel(level) {
+            if (level < 1) return 0;
+            if (level >= experienceTable.length) return experienceTable[experienceTable.length - 1];
+            return experienceTable[level];
+        }
+
+        function getLevelForExp(exp) {
+            if (exp < 0) return 1;
+            for (let i = 1; i < experienceTable.length; i++) {
+                if (experienceTable[i] > exp) {
+                    return i - 1;
+                }
+            }
+            return experienceTable.length - 1;
+        }
+
+        function formatNumber(num) {
+            return num.toLocaleString('en-US');
+        }
+
+        function showMessage(msg) {
+            messageDiv.textContent = msg;
+            messageDiv.classList.remove('opacity-0');
+        }
+        
+        function clearMessage() {
+            messageDiv.textContent = '';
+            messageDiv.classList.add('opacity-0');
+        }
+
+        function calculate() {
+            clearMessage();
+            
+            const currentVal = parseInt(currentValueInput.value);
+            const targetLevel = parseInt(targetLevelInput.value);
+
+            // Don't calculate if inputs are empty
+            if (isNaN(currentVal) || isNaN(targetLevel)) {
+                resultsDiv.classList.add('hidden', 'opacity-0');
+                return;
+            }
+
+            const inputType = inputTypeSelect.value;
+            const generalItem = itemPicker.value;
+            const goldItem = goldItemPicker.value;
+
+            let currentExp, currentLevel;
+
+            if (inputType === 'level') {
+                currentLevel = currentVal;
+                if (currentLevel < 1 || currentLevel > 119) {
+                    showMessage('Current level must be between 1 and 119.');
+                    return;
+                }
+                currentExp = getTotalExpForLevel(currentLevel);
+            } else { // 'exp'
+                currentExp = currentVal;
+                if (currentExp < 0) {
+                    showMessage('Current EXP cannot be negative.');
+                    return;
+                }
+                currentLevel = getLevelForExp(currentExp);
+            }
+
+            if (targetLevel <= currentLevel) {
+                showMessage('Target level must be higher than your current level.');
+                return;
+            }
+            if (targetLevel > 120) {
+                showMessage('Target level cannot be higher than 120.');
+                return;
+            }
+
+            const targetExp = getTotalExpForLevel(targetLevel);
+            const expNeeded = targetExp - currentExp;
+
+            if (expNeeded <= 0) {
+                showMessage('You have already reached the target level\'s EXP.');
+                return;
+            }
+            
+            expInfoP.innerHTML = `
+                You need <strong class="text-amber-300">${formatNumber(expNeeded)}</strong> more EXP to go from 
+                Level <strong class="text-slate-100">${currentLevel}</strong> (${formatNumber(currentExp)} EXP) to 
+                Level <strong class="text-slate-100">${targetLevel}</strong> (${formatNumber(targetExp)} EXP).
+            `;
+
+            const resultsContainer = resultsDiv.querySelector('.grid');
+            resultsContainer.innerHTML = ''; 
+
+            smithingData.forEach(metal => {
+                let totalExpPerAction = metal.exp;
+                let bonusText = '';
+
+                if (metal.name === 'Gold') {
+                    if (goldItem === 'unsocketed') {
+                        totalExpPerAction += metal.unsocketedExp;
+                        bonusText = `+ Unsocketed`;
+                    } else {
+                        totalExpPerAction += metal.socketedExp;
+                        bonusText = `+ Socketed`;
+                    }
+                } else if (metal.name !== 'Meteorite') {
+                    if (generalItem === 'handle') {
+                        totalExpPerAction += metal.handleExp;
+                        bonusText = `+ Handle`;
+                    } else {
+                        totalExpPerAction += metal.arrowheadExp;
+                        bonusText = `+ Arrowhead`;
+                    }
+                }
+
+                const barsNeeded = Math.ceil(expNeeded / totalExpPerAction);
+                const isLocked = currentLevel < metal.level;
+                const card = `
+                    <div class="metal-card bg-gray-900/70 p-4 rounded-lg text-center flex flex-col justify-between ${metal.color} ${isLocked ? 'opacity-50 relative' : 'relative'}">
+                        <div>
+                           <h3 class="text-lg font-bold text-white">${metal.name}</h3>
+                           <p class="text-sm text-slate-400">Lvl ${metal.level}+</p>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-2xl font-semibold text-white">${formatNumber(barsNeeded)}</p>
+                            <p class="text-xs text-slate-400">bars</p>
+                            ${bonusText ? `<p class="text-xs text-amber-300 mt-1">${bonusText} (${formatNumber(totalExpPerAction)} xp)</p>` : `<p class="text-xs text-amber-300 mt-1">(${formatNumber(totalExpPerAction)} xp)</p>`}
+                        </div>
+                        ${isLocked ? `<div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded-lg"><span class="font-bold text-red-500 text-lg">LOCKED</span></div>` : ''}
+                    </div>
+                `;
+                resultsContainer.innerHTML += card;
+            });
+
+            resultsDiv.classList.remove('hidden');
+            setTimeout(() => resultsDiv.classList.remove('opacity-0'), 10);
+        }
+
+        // --- EVENT LISTENER ---
+        inputForm.addEventListener('input', calculate);
+        inputForm.addEventListener('change', calculate); // For select elements
+
+    </script>
+</body>
+</html>
